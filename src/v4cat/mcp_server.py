@@ -8,8 +8,8 @@ resources, and prompts. Per methodology.md's MCP interface section:
     introduce_object, witness, refine, defer, promote, boundary).
   * Resources: addressable URIs for derived views
     (catalogue://breaks, catalogue://retroactive, etc.).
-  * Prompts: workflow templates (analyze_new_processor,
-    audit_md_vs_sql, next_processor, snap_to_grid_check).
+  * Prompts: workflow templates (analyze_new_object,
+    audit_md_vs_sql, next_object, snap_to_grid_check).
 
 Run via stdio (the MCP standard for local servers)::
 
@@ -145,8 +145,9 @@ server = FastMCP(
     name='symmetry-catalogue',
     instructions="""
 The symmetry-break catalogue is a queryable graph of breaks (named
-structural distinctions), specs (witness objects: processors, formal
-systems), and witnesses (typed edges between specs and breaks).
+structural distinctions), specs (witness objects of any kind a domain
+extension introduces), and witnesses (typed edges between specs and
+breaks).
 
 Use the ISA verbs (tools) to extend the catalogue:
 - introduce_break / introduce_object / introduce_tension to add nodes
@@ -159,7 +160,9 @@ Read views (resources) to explore the graph:
 - catalogue://breaks/{number} returns one break with witnesses
 - catalogue://retroactive lists breaks whose chronological origin
   precedes their catalogue introduction
-- catalogue://q92_violations checks the Q89/Q92 consistency rule
+- catalogue://violations/{rule} runs a domain-extension consistency
+  rule (the rule maps to a `<rule>_violations` view that the
+  domain extension's schema must define)
 
 Use prompts to scaffold common workflows.
 
@@ -211,8 +214,10 @@ def introduce_object(
 ) -> dict:
     """ISA: INTRODUCE object <id>.
 
-    Add a new witness-object (processor, language, formal system,
-    schema-version, etc.) to the catalogue.
+    Add a new witness-object — any structured artefact a domain
+    extension wants to catalogue (programming language, processor,
+    cryptographic primitive, file system, formal system,
+    schema-version, etc.).
 
     Framework-minimal signature. Only attributes that are
     load-bearing for framework views are first-class:
@@ -224,19 +229,17 @@ def introduce_object(
       * ``lineage`` — list of ``[ancestor_id, kind]`` pairs;
         populates the lineages table for inheritance queries
 
-    Domain-specific attributes (vendor, register width, evaluation
-    strategy, hardness assumption, etc.) go in ``attrs``: a dict
-    whose entries are stored as (spec_id, name, value) rows in
-    spec_attributes. Values are stringified; cast at query time.
+    Domain-specific attributes (any name/value pairs the domain
+    schema wants to track) go in ``attrs``: a dict whose entries
+    are stored as (spec_id, name, value) rows in spec_attributes.
+    Values are stringified; cast at query time.
 
-    Example:
+    Example (synthetic):
 
         introduce_object(
-            id='80386', name='Intel 80386',
-            year=1985,
-            lineage=[['80286', 'descended-from']],
-            attrs={'vendor': 'Intel', 'family': 'x86',
-                   'data_bits': 32, 'address_bits': 32}
+            id='alpha', name='Alpha',
+            year=1980,
+            attrs={'role': 'origin', 'kind': 'synthetic'},
         )
     """
     lineage_pairs = [tuple(p) for p in lineage] if lineage else None
@@ -294,7 +297,9 @@ def witness(
     deferred-candidate, sibling-boundary, gates-with-fault.
 
     ``scope`` is 'spec' (default) or 'agent' (for sub-spec scopes
-    like the 8087's agent-level Q87 precedence).
+    when one named witness object actually contains multiple
+    distinguishable contributors and a break is properly attributed
+    to one of them).
     """
     get_catalogue().witness(
         subject, break_number, kind, notes=notes, scope=scope,
@@ -609,11 +614,20 @@ def tensions_view() -> str:
     )
 
 
-@server.resource('catalogue://q92_violations')
-def q92_violations_view() -> str:
-    """Q89/Q92 consistency check: paged specs need restart-suitable
-    frames. Empty result means consistent."""
-    return json.dumps(_consistency(get_catalogue(), 'q92'), indent=2)
+@server.resource('catalogue://violations/{rule}')
+def violations_view(rule: str) -> str:
+    """Run a domain-extension consistency rule. The rule name maps
+    to a ``<rule>_violations`` view that the loaded domain
+    extension must define. Empty result means consistent.
+
+    The framework ships no built-in rules; this resource is the
+    addressable entry point for any rule the user's extension
+    introduces.
+    """
+    try:
+        return json.dumps(_consistency(get_catalogue(), rule), indent=2)
+    except ValueError as e:
+        return json.dumps({'error': str(e)})
 
 
 @server.resource('catalogue://axes')
@@ -630,7 +644,9 @@ def mixed_breaks_view() -> str:
 
 @server.resource('catalogue://agent_witnesses')
 def agent_witnesses_view() -> str:
-    """Witnesses scoped at agent level (e.g. 8087 Q87 precedes)."""
+    """Witnesses whose ``scope`` is finer than the spec — used
+    when a single named witness object contains multiple
+    distinguishable contributors."""
     return json.dumps(_agent_witnesses(get_catalogue()), indent=2)
 
 
@@ -789,8 +805,8 @@ def doc_index() -> str:
         '4. **catalogue://theory** — foundations: shadow architecture, '
         'temporal axis, Klein-four, Yoneda+Derrida, magma+pointfree, '
         'recursive schema, convergence, trace-thickening.\n'
-        '5. **catalogue://examples** — domain templates for non-'
-        'processor domains (programming languages, crypto, databases, '
+        '5. **catalogue://examples** — domain templates '
+        '(programming languages, processors, crypto, databases, '
         'file systems, math structures, OS design, ML architectures).\n\n'
     )
     lines.append('## Data resources\n')
@@ -805,12 +821,14 @@ def doc_index() -> str:
         '* **catalogue://retroactive** — breaks where origin precedes '
         'catalogue introduction\n'
         '* **catalogue://tensions** — open structural tensions\n'
-        '* **catalogue://q92_violations** — Q89/Q92 paging consistency\n'
+        '* **catalogue://violations/{rule}** — domain-extension '
+        'consistency rule (rule must be a valid identifier; maps to '
+        'a `<rule>_violations` view defined by the loaded extension)\n'
         '* **catalogue://axes** — distribution of breaks per axis\n'
         '* **catalogue://mixed_breaks** — breaks committing to '
         'multiple axes\n'
-        '* **catalogue://agent_witnesses** — witnesses scoped at '
-        'agent level\n'
+        '* **catalogue://agent_witnesses** — witnesses scoped finer '
+        'than the spec\n'
         '* **catalogue://spec_axes** — per-spec 5-axis declarations\n'
         '* **catalogue://top_originators** — most prolific originator '
         'specs\n'
@@ -847,24 +865,24 @@ def doc_index() -> str:
 # =============================================================================
 
 @server.prompt()
-def analyze_new_processor(spec_doc_url: str) -> str:
-    """Template: examine a processor spec doc and propose ISA ops."""
-    return f"""Examine the spec document at {spec_doc_url}. For each architectural
+def analyze_new_object(spec_doc_url: str) -> str:
+    """Template: examine a witness-object's spec doc and propose ISA ops."""
+    return f"""Examine the spec document at {spec_doc_url}. For each structural
 section, identify:
 
-  1. Existing breaks the processor inherits unchanged (witness with
+  1. Existing breaks this object inherits unchanged (witness with
      kind='inherits' or 'confirms')
   2. Refinements of existing breaks (witness with kind='refines',
      plus a refine() call recording what specifically was refined)
-  3. New breaks the processor forces. Number each new break in the
-     Q-series; provide a (partition, preservation-theorem) pair for
-     break_invariants.
+  3. New breaks this object forces. Number each new break in the
+     catalogue's break-numbering convention; provide a
+     (partition, preservation-theorem) pair for break_invariants.
 
 Cross-check against existing catalogue:
   - Read catalogue://breaks for the current set of named breaks
   - Read catalogue://top_originators to see if this lineage already
     has originators
-  - Read catalogue://lineages/{{ancestor_id}} if the processor descends
+  - Read catalogue://lineages/{{ancestor_id}} if this object descends
     from an existing one
 
 Output a sequence of ISA tool calls (introduce_object,
@@ -873,9 +891,9 @@ forget the year and lineage edges — those are how chronological
 attribution emerges automatically.
 
 Methodological reminders:
-  - No RETRO verb. If this processor's chronological priority
-    over an existing break is news, just add an origin witness
-    with the year attribute; the view will re-derive the originator.
+  - No RETRO verb. If this object's chronological priority over
+    an existing break is news, just add an origin witness with
+    the year attribute; the view will re-derive the originator.
   - Schema breaks are additive. If the analysis surfaces a new
     structural primitive that doesn't fit existing primitives,
     flag it as a candidate for introduce_break with a documented
@@ -909,8 +927,8 @@ calls. The user decides which to apply.
 
 
 @server.prompt()
-def next_processor(domain: str = 'processor') -> str:
-    """Template: suggest the next processor to analyse."""
+def next_object(domain: str = 'object') -> str:
+    """Template: suggest the next witness-object to analyse."""
     cat = get_catalogue()
     recent = cat.query(
         "SELECT id, name, year FROM specs "
@@ -932,17 +950,17 @@ Recent additions (last 3 by exposition order): {recent_str}
 Top originators by break count: {top_str}
 
 Heuristics for choosing:
-  - A processor that confirms an existing break cross-vendor
-    (different lineage from existing originators)
-  - A processor likely to force a new break or significant
-    refinement (richer architecture, novel feature)
-  - A processor that fills a chronological gap or completes a
-    family lineage already partially in the catalogue
-  - A non-processor witness (esoteric language, mathematical
-    structure) that stress-tests the metamodel from an extreme
+  - An object that confirms an existing break from a different
+    lineage (cross-confirmation strengthens the break's status)
+  - An object likely to force a new break or significant refinement
+    (richer structure, novel feature)
+  - An object that fills a chronological gap or completes a family
+    lineage already partially in the catalogue
+  - An object outside the dominant domain of existing entries —
+    something that stress-tests the metamodel from an extreme
 
 Provide:
-  1. Your suggested next processor (one sentence)
+  1. Your suggested next {domain} (one sentence)
   2. Predicted contributions: which breaks confirmed, refined,
      possibly forced
   3. Open question: which catalogue gap does adding it close?
@@ -962,7 +980,8 @@ Steps:
      from exposition.
   3. Read catalogue://tensions to see what's not yet aligned with
      the metamodel.
-  4. Read catalogue://q92_violations to check structural consistency.
+  4. Read catalogue://violations/{{rule}} for any consistency rules
+     the loaded domain extension defines (skip if none).
 
 Report one of:
   - 'consistent' — the catalogue's entailment matches the deliverable

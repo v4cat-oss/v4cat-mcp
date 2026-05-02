@@ -416,9 +416,9 @@ async def test_readme_doc_resource():
 # Prompt tests
 # -----------------------------------------------------------------------------
 
-async def test_analyze_new_processor_prompt():
+async def test_analyze_new_object_prompt():
     populated_catalogue()
-    result = await get_prompt('analyze_new_processor',
+    result = await get_prompt('analyze_new_object',
                               spec_doc_url='http://example.com/x.pdf')
     text = result.messages[0].content.text
     assert 'http://example.com/x.pdf' in text
@@ -435,11 +435,11 @@ async def test_audit_md_vs_sql_prompt():
     assert 'symmetries.sql' in text
 
 
-async def test_next_processor_prompt_uses_current_catalogue():
-    """The next_processor prompt embeds recent catalogue state — it
+async def test_next_object_prompt_uses_current_catalogue():
+    """The next_object prompt embeds recent catalogue state — it
     runs queries against the live catalogue."""
     populated_catalogue()
-    result = await get_prompt('next_processor', domain='witness-object')
+    result = await get_prompt('next_object', domain='witness-object')
     text = result.messages[0].content.text
     assert 'Recent additions' in text
     assert 'Top originators' in text
@@ -638,9 +638,9 @@ ALL_TESTS = [
     test_tutorial_doc_resource,
     test_examples_doc_resource,
     test_readme_doc_resource,
-    test_analyze_new_processor_prompt,
+    test_analyze_new_object_prompt,
     test_audit_md_vs_sql_prompt,
-    test_next_processor_prompt_uses_current_catalogue,
+    test_next_object_prompt_uses_current_catalogue,
     test_snap_to_grid_prompt,
     test_full_session_synthetic,
     # Slot mode
