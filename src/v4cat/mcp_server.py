@@ -427,16 +427,22 @@ def create_catalogue(name: str) -> dict:
 # -----------------------------------------------------------------------------
 
 @server.tool()
-def query_origin(break_number: str) -> dict | None:
-    """Return the chronological originator of a break (tropical
-    MIN-year over origin-class witness edges)."""
-    return get_catalogue().origin(break_number)
+def query_origin(
+    break_number: str,
+    axis_column: str = 'year',
+) -> dict | None:
+    """Return the originator of a break — tropical MIN over a chosen
+    metric field, restricted to origin-class witness edges. Default
+    axis is ``year``; any ordered column on ``specs`` works."""
+    return get_catalogue().origin(break_number, axis_column=axis_column)
 
 
 @server.tool()
 def query_first_seen(break_number: str) -> dict | None:
     """Return the spec where the catalogue first analysed a break
-    (tropical MIN-catalogue_order over catalogue-introduces edges)."""
+    (tropical MIN-catalogue_order over catalogue-introduces edges).
+    ``catalogue_order`` is the catalogue's own exposition axis, not
+    a domain axis, so this query is not parametric."""
     return get_catalogue().first_seen(break_number)
 
 
