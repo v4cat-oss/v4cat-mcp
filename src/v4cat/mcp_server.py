@@ -791,6 +791,13 @@ def doc_readme() -> str:
     return (DOC_DIR / 'README.md').read_text()
 
 
+@server.resource('catalogue://mcp_setup',
+                 name='mcp_setup',
+                 description='How to wire the v4cat MCP server into VS Code, Claude Desktop, Claude Code, Codex CLI')
+def doc_mcp_setup() -> str:
+    return (DOC_DIR / 'mcp_setup.md').read_text()
+
+
 @server.resource('catalogue://docs',
                  name='docs',
                  description='Index of available documentation resources')
@@ -804,14 +811,16 @@ def doc_index() -> str:
     lines.append('Read these in roughly this order:\n')
     lines.append(
         '1. **catalogue://readme** — quick-start (you may already have this).\n'
-        '2. **catalogue://tutorial** — operational walk-through; '
+        '2. **catalogue://mcp_setup** — how to wire the server into '
+        'VS Code, Claude Desktop, Claude Code, Codex CLI.\n'
+        '3. **catalogue://tutorial** — operational walk-through; '
         'most useful first read for an LLM extending the catalogue.\n'
-        '3. **catalogue://methodology** — full design: ISA, schema '
+        '4. **catalogue://methodology** — full design: ISA, schema '
         'breaks, KQUERY read primitive, MCP interface.\n'
-        '4. **catalogue://theory** — foundations: shadow architecture, '
+        '5. **catalogue://theory** — foundations: shadow architecture, '
         'temporal axis, Klein-four, Yoneda+Derrida, magma+pointfree, '
         'recursive schema, convergence, trace-thickening.\n'
-        '5. **catalogue://examples** — domain templates '
+        '6. **catalogue://examples** — domain templates '
         '(programming languages, processors, crypto, databases, '
         'file systems, math structures, OS design, ML architectures).\n\n'
     )

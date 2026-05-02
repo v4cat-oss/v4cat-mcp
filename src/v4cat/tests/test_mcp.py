@@ -360,7 +360,8 @@ async def test_docs_index_lists_resources():
     text = await read_resource('catalogue://docs')
     assert isinstance(text, str)
     # Mentions each doc resource
-    for name in ('readme', 'tutorial', 'methodology', 'theory', 'examples'):
+    for name in ('readme', 'mcp_setup', 'tutorial', 'methodology',
+                 'theory', 'examples'):
         assert f'catalogue://{name}' in text
     # Mentions ISA verbs and read tools
     assert 'introduce_break' in text
@@ -410,6 +411,23 @@ async def test_readme_doc_resource():
     assert isinstance(text, str)
     # README has the quick-start
     assert 'Quick start' in text or 'quick-start' in text.lower()
+
+
+async def test_mcp_setup_doc_resource():
+    """The mcp_setup doc is exposed at catalogue://mcp_setup so
+    clients can read it once connected. It covers VS Code,
+    Claude Desktop, Claude Code, and Codex CLI."""
+    fresh_catalogue()
+    text = await read_resource('catalogue://mcp_setup')
+    assert isinstance(text, str)
+    # All four target clients are documented
+    assert 'VS Code' in text
+    assert 'Claude Desktop' in text
+    assert 'Claude Code' in text
+    assert 'Codex' in text
+    # Both persistence modes are covered
+    assert '--db' in text
+    assert '--root' in text
 
 
 # -----------------------------------------------------------------------------
@@ -638,6 +656,7 @@ ALL_TESTS = [
     test_tutorial_doc_resource,
     test_examples_doc_resource,
     test_readme_doc_resource,
+    test_mcp_setup_doc_resource,
     test_analyze_new_object_prompt,
     test_audit_md_vs_sql_prompt,
     test_next_object_prompt_uses_current_catalogue,
