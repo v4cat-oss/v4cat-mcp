@@ -1,9 +1,11 @@
 # Setting up the v4cat MCP server
 
-The v4cat package ships an MCP (Model Context Protocol) server that
-exposes every ISA verb as a tool, every analytic view as a
-`catalogue://…` resource, and four workflow prompts. This document
-walks through wiring it into the common MCP-aware clients.
+The `v4cat-mcp` package is an MCP (Model Context Protocol) server
+that exposes every v4cat ISA verb as a tool, every analytic view as a
+`catalogue://…` resource, and four workflow prompts. The catalogue
+itself lives in the `v4cat` package, which `v4cat-mcp` pulls in as a
+dependency. This document walks through wiring the server into the
+common MCP-aware clients.
 
 ## Contents
 
@@ -26,17 +28,19 @@ how you run other Python tools.
 
 ```sh
 # pipx — installs to an isolated, always-available location
-pipx install v4cat
+pipx install v4cat-mcp
 
 # uv tool — newer, faster equivalent
-uv tool install v4cat
+uv tool install v4cat-mcp
 
 # global pip
-pip install v4cat
+pip install v4cat-mcp
 
 # inside a venv
-python -m venv .venv && .venv/bin/pip install v4cat
+python -m venv .venv && .venv/bin/pip install v4cat-mcp
 ```
+
+Each of these pulls `v4cat` (the catalogue core) in as a dependency.
 
 After install the `v4cat-mcp` script is on PATH:
 
@@ -45,7 +49,7 @@ $ which v4cat-mcp
 /home/you/.local/bin/v4cat-mcp
 
 $ v4cat-mcp --help
-usage: v4cat.mcp_server [-h] [--db DB | --root ROOT] [--default DEFAULT]
+usage: v4cat-mcp [-h] [--db DB | --root ROOT] [--default DEFAULT]
 …
 ```
 
@@ -54,7 +58,7 @@ If you don't want a permanent install, run it on demand:
 ```sh
 uvx v4cat-mcp --db /path/to/cat.db
 # or
-pipx run v4cat -- v4cat-mcp --db /path/to/cat.db
+pipx run v4cat-mcp --db /path/to/cat.db
 ```
 
 ## 2. Pick a persistence mode
@@ -131,7 +135,7 @@ server creates them on demand via the `create_catalogue` tool.
 
 ### Without an installed `v4cat-mcp` script
 
-If you'd rather not install v4cat globally and keep it scoped to the
+If you'd rather not install v4cat-mcp globally and keep it scoped to the
 workspace, point at uvx (or another runner) instead:
 
 ```json
@@ -154,9 +158,9 @@ every workspace; useful for catalogues that live outside any
 particular project (e.g., a personal knowledge graph at
 `~/cat.db`).
 
-### Pinning `v4cat` to a specific version
+### Pinning `v4cat-mcp` to a specific version
 
-If you want to lock v4cat at a known version (recommended for
+If you want to lock the server at a known version (recommended for
 shared workspaces), use `uvx --from`:
 
 ```json
@@ -166,7 +170,7 @@ shared workspaces), use `uvx --from`:
       "type": "stdio",
       "command": "uvx",
       "args": [
-        "--from", "v4cat==0.3.0",
+        "--from", "v4cat-mcp==0.5.0",
         "v4cat-mcp",
         "--db", "${workspaceFolder}/cat.db"
       ]

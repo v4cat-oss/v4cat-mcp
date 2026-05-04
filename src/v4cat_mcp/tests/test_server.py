@@ -1,12 +1,12 @@
 """
-Framework tests for v4cat.mcp_server.
+Framework tests for v4cat_mcp.server.
 
 Exercises tools, resources, and prompts via FastMCP's in-process API.
-Uses synthetic mini-domain data; no dependency on processor catalogue.
+Uses synthetic mini-domain data; no dependency on any specific catalogue.
 
 Run as a script::
 
-    python -m v4cat.tests.test_mcp
+    python -m v4cat_mcp.tests.test_server
 """
 from __future__ import annotations
 
@@ -19,8 +19,8 @@ import tempfile
 from pathlib import Path
 
 from v4cat import SymmetryCatalogue
-from v4cat.mcp_server import server, set_catalogue, set_root
 from v4cat.sandbox import CatalogueRoot
+from v4cat_mcp.server import server, set_catalogue, set_root
 
 
 # -----------------------------------------------------------------------------

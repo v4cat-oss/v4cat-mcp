@@ -1,8 +1,9 @@
 """
-v4cat.mcp_server — MCP server exposing the ISA to LLM clients.
+v4cat_mcp.server — MCP server exposing the v4cat ISA to LLM clients.
 
-Wraps v4cat.SymmetryCatalogue as Model Context Protocol tools,
-resources, and prompts. Per methodology.md's MCP interface section:
+Wraps :class:`v4cat.SymmetryCatalogue` as Model Context Protocol
+tools, resources, and prompts. Per ``catalogue://methodology``
+(served from the v4cat package), the MCP interface comprises:
 
   * Tools: each ISA verb is one tool (introduce_break,
     introduce_object, witness, refine, defer, promote, boundary).
@@ -13,7 +14,9 @@ resources, and prompts. Per methodology.md's MCP interface section:
 
 Run via stdio (the MCP standard for local servers)::
 
-    python -m v4cat.mcp_server [--db PATH | --root DIR [--default SLOT]]
+    v4cat-mcp [--db PATH | --root DIR [--default SLOT]]
+
+or equivalently ``python -m v4cat_mcp [...]``.
 
 Two persistence modes:
 
@@ -38,9 +41,9 @@ from typing import Optional
 
 from mcp.server.fastmcp import FastMCP
 
-from .catalogue import SymmetryCatalogue
-from .sandbox import CatalogueRoot, InvalidSlot, SlotExists, SlotMissing
-from .views import (
+from v4cat.catalogue import SymmetryCatalogue
+from v4cat.sandbox import CatalogueRoot, InvalidSlot, SlotExists, SlotMissing
+from v4cat.views import (
     ALL_CELLS,
     agent_level_witnesses as _agent_witnesses,
     axis_distribution as _axis_distribution,
@@ -712,7 +715,7 @@ def self_hosting_view() -> str:
     Corollary 14.5.1's constructive content — the precise to-do
     list to restore self-hosting at scope.
     """
-    from .bootstrap import closure_status, supported_kinds
+    from v4cat.bootstrap import closure_status, supported_kinds
     cat = get_catalogue()
     kinds = sorted(supported_kinds(cat))
     result = closure_status(cat)
@@ -753,77 +756,81 @@ def self_hosting_view() -> str:
 # human) can read the design and walkthrough at runtime.
 # -----------------------------------------------------------------------------
 
-DOC_DIR = Path(__file__).parent
+from importlib.resources import files as _pkg_files
+
+# v4cat docs travel with the v4cat distribution; this package only owns setup.md.
+V4CAT_DOCS = _pkg_files('v4cat')
+MCP_DOCS = _pkg_files('v4cat_mcp')
 
 
 @server.resource('catalogue://methodology',
                  name='methodology',
                  description='Operational design — ISA, schema, KQUERY, MCP interface')
 def doc_methodology() -> str:
-    return (DOC_DIR / 'methodology.md').read_text()
+    return (V4CAT_DOCS / 'methodology.md').read_text()
 
 
 @server.resource('catalogue://theory',
                  name='theory',
                  description='Foundations — shadow architecture, Klein-four, Yoneda+Derrida, magma+pointfree')
 def doc_theory() -> str:
-    return (DOC_DIR / 'theory.md').read_text()
+    return (V4CAT_DOCS / 'theory.md').read_text()
 
 
 @server.resource('catalogue://tutorial',
                  name='tutorial',
                  description='LLM-friendly walk-through — empty catalogue to small worked domain')
 def doc_tutorial() -> str:
-    return (DOC_DIR / 'tutorial.md').read_text()
+    return (V4CAT_DOCS / 'tutorial.md').read_text()
 
 
 @server.resource('catalogue://examples',
                  name='examples',
                  description='Domain templates — programming languages, crypto, databases, file systems, math, etc.')
 def doc_examples() -> str:
-    return (DOC_DIR / 'examples.md').read_text()
+    return (V4CAT_DOCS / 'examples.md').read_text()
 
 
 @server.resource('catalogue://readme',
                  name='readme',
                  description='Quick-start, layout, methodology summary')
 def doc_readme() -> str:
-    return (DOC_DIR / 'README.md').read_text()
+    return (V4CAT_DOCS / 'README.md').read_text()
 
 
 @server.resource('catalogue://mcp_setup',
                  name='mcp_setup',
                  description='How to wire the v4cat MCP server into VS Code, Claude Desktop, Claude Code, Codex CLI')
 def doc_mcp_setup() -> str:
-    return (DOC_DIR / 'mcp_setup.md').read_text()
+    return (MCP_DOCS / 'setup.md').read_text()
 
 
 @server.resource('catalogue://rigorous_use',
                  name='rigorous_use',
                  description='Operating covenant — declaring U, carriers for every claim, preserving the four cells, using v4cat as rigorously as v4cat uses itself')
 def doc_rigorous_use() -> str:
-    return (DOC_DIR / 'rigorous_use.md').read_text()
+    return (V4CAT_DOCS / 'rigorous_use.md').read_text()
 
 
 @server.resource('catalogue://python_api',
                  name='python_api',
                  description='Non-MCP API discipline — RISC/CISC strata, kquery + Tension patterns, lifecycle as witnesses, extension shape')
 def doc_python_api() -> str:
-    return (DOC_DIR / 'python_api.md').read_text()
+    return (V4CAT_DOCS / 'python_api.md').read_text()
 
 
 @server.resource('catalogue://hosted_skills',
                  name='hosted_skills',
                  description='Hosted-framework contract — making the four shadow-architecture skills (DBE/RFS/S2G/shadow-architecture) into v4cat-hosted objects with kquery-auditable closure')
 def doc_hosted_skills() -> str:
-    return (DOC_DIR / 'hosted_skills.md').read_text()
+    return (V4CAT_DOCS / 'hosted_skills.md').read_text()
 
 
 @server.resource('catalogue://hosted_skill_usage',
                  name='hosted_skill_usage',
                  description='Per-region operating manual for hosted skills — work-fire as unit of use, eight worked examples (one per lattice region), orbit-saturation guard')
 def doc_hosted_skill_usage() -> str:
-    return (DOC_DIR / 'hosted_skill_usage.md').read_text()
+    return (V4CAT_DOCS / 'hosted_skill_usage.md').read_text()
 
 
 @server.resource('catalogue://docs',
@@ -1075,7 +1082,7 @@ def main() -> None:
     :data:`DEFAULT_DB_PATH` for backward compatibility.
     """
     import argparse
-    parser = argparse.ArgumentParser(prog='v4cat.mcp_server')
+    parser = argparse.ArgumentParser(prog='v4cat-mcp')
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument(
         '--db', type=Path, default=None,
