@@ -361,7 +361,8 @@ async def test_docs_index_lists_resources():
     assert isinstance(text, str)
     # Mentions each doc resource
     for name in ('readme', 'mcp_setup', 'tutorial', 'methodology',
-                 'theory', 'examples'):
+                 'theory', 'examples', 'rigorous_use', 'python_api',
+                 'hosted_skills', 'hosted_skill_usage'):
         assert f'catalogue://{name}' in text
     # Mentions ISA verbs and read tools
     assert 'introduce_break' in text
@@ -428,6 +429,56 @@ async def test_mcp_setup_doc_resource():
     # Both persistence modes are covered
     assert '--db' in text
     assert '--root' in text
+
+
+async def test_rigorous_use_doc_resource():
+    """The rigorous-use covenant is exposed at catalogue://rigorous_use."""
+    fresh_catalogue()
+    text = await read_resource('catalogue://rigorous_use')
+    assert isinstance(text, str)
+    # The covenant's central anchors
+    assert 'universe' in text.lower()
+    assert 'kquery' in text
+    assert 'V₄' in text or 'four cells' in text.lower()
+
+
+async def test_python_api_doc_resource():
+    """The non-MCP API discipline is exposed at catalogue://python_api."""
+    fresh_catalogue()
+    text = await read_resource('catalogue://python_api')
+    assert isinstance(text, str)
+    # The API discipline names the RISC core and key surfaces
+    assert 'introduce_node' in text
+    assert 'kquery' in text
+    assert 'Tension' in text
+    assert 'load_extension' in text
+
+
+async def test_hosted_skills_doc_resource():
+    """The hosted-framework contract is exposed at catalogue://hosted_skills."""
+    fresh_catalogue()
+    text = await read_resource('catalogue://hosted_skills')
+    assert isinstance(text, str)
+    # The four hosted skills and the contract anchor
+    assert 'HostedFramework' in text
+    assert 'DBE' in text
+    assert 'RFS' in text
+    assert 'S2G' in text
+    assert 'shadow-architecture' in text
+    assert 'kquery' in text
+
+
+async def test_hosted_skill_usage_doc_resource():
+    """The per-region operating manual is exposed at catalogue://hosted_skill_usage."""
+    fresh_catalogue()
+    text = await read_resource('catalogue://hosted_skill_usage')
+    assert isinstance(text, str)
+    # Fire as unit of use, region labels, residue discipline
+    assert 'work-fire' in text or 'FIRE-' in text
+    assert 'REG-111' in text
+    assert 'REG-010' in text  # the forbidden region must be discussed
+    assert 'kquery' in text
+    assert 'cotype' in text
 
 
 # -----------------------------------------------------------------------------
@@ -657,6 +708,10 @@ ALL_TESTS = [
     test_examples_doc_resource,
     test_readme_doc_resource,
     test_mcp_setup_doc_resource,
+    test_rigorous_use_doc_resource,
+    test_python_api_doc_resource,
+    test_hosted_skills_doc_resource,
+    test_hosted_skill_usage_doc_resource,
     test_analyze_new_object_prompt,
     test_audit_md_vs_sql_prompt,
     test_next_object_prompt_uses_current_catalogue,

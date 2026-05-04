@@ -798,6 +798,34 @@ def doc_mcp_setup() -> str:
     return (DOC_DIR / 'mcp_setup.md').read_text()
 
 
+@server.resource('catalogue://rigorous_use',
+                 name='rigorous_use',
+                 description='Operating covenant — declaring U, carriers for every claim, preserving the four cells, using v4cat as rigorously as v4cat uses itself')
+def doc_rigorous_use() -> str:
+    return (DOC_DIR / 'rigorous_use.md').read_text()
+
+
+@server.resource('catalogue://python_api',
+                 name='python_api',
+                 description='Non-MCP API discipline — RISC/CISC strata, kquery + Tension patterns, lifecycle as witnesses, extension shape')
+def doc_python_api() -> str:
+    return (DOC_DIR / 'python_api.md').read_text()
+
+
+@server.resource('catalogue://hosted_skills',
+                 name='hosted_skills',
+                 description='Hosted-framework contract — making the four shadow-architecture skills (DBE/RFS/S2G/shadow-architecture) into v4cat-hosted objects with kquery-auditable closure')
+def doc_hosted_skills() -> str:
+    return (DOC_DIR / 'hosted_skills.md').read_text()
+
+
+@server.resource('catalogue://hosted_skill_usage',
+                 name='hosted_skill_usage',
+                 description='Per-region operating manual for hosted skills — work-fire as unit of use, eight worked examples (one per lattice region), orbit-saturation guard')
+def doc_hosted_skill_usage() -> str:
+    return (DOC_DIR / 'hosted_skill_usage.md').read_text()
+
+
 @server.resource('catalogue://docs',
                  name='docs',
                  description='Index of available documentation resources')
@@ -822,7 +850,21 @@ def doc_index() -> str:
         'recursive schema, convergence, trace-thickening.\n'
         '6. **catalogue://examples** — domain templates '
         '(programming languages, processors, crypto, databases, '
-        'file systems, math structures, OS design, ML architectures).\n\n'
+        'file systems, math structures, OS design, ML architectures).\n'
+        '7. **catalogue://rigorous_use** — operating covenant: '
+        'declaring U, carriers for every claim, preserving the four '
+        'cells, using v4cat as rigorously as v4cat uses itself.\n'
+        '8. **catalogue://python_api** — non-MCP API discipline: '
+        'RISC/CISC strata, kquery + Tension patterns, lifecycle as '
+        'witnesses, extension shape.\n'
+        '9. **catalogue://hosted_skills** — hosted-framework contract '
+        'for the four shadow-architecture skills (DBE/RFS/S2G/'
+        'shadow-architecture) as v4cat objects with closure '
+        'obligations.\n'
+        '10. **catalogue://hosted_skill_usage** — per-region '
+        'operating manual: work-fire as unit of use, eight worked '
+        'examples covering all lattice regions (including the two '
+        'forbidden ones), orbit-saturation guard.\n\n'
     )
     lines.append('## Data resources\n')
     lines.append(
