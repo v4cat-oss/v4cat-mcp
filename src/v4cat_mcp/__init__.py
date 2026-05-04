@@ -19,6 +19,6 @@ See ``v4cat_mcp/setup.md`` (also exposed as ``catalogue://mcp_setup``)
 for per-client wiring instructions (VS Code, Claude Desktop, Claude
 Code, Codex CLI).
 """
-from .server import server, main
+from .server import main
 
-__all__ = ['server', 'main']
+__all__ = ['main']
